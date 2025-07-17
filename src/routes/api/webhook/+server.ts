@@ -1,22 +1,32 @@
 // src/routes/api/webhook/+server.ts
+import { json, type RequestHandler } from '@sveltejs/kit';
 
-import type { RequestHandler } from './$types';
-
-/**
- * Cette fonction s'exécute quand une requête POST est reçue sur l'URL /api/webhook
- */
 export const POST: RequestHandler = async ({ request }) => {
-  // On affiche un message dans la console pour savoir que quelque chose s'est passé
-  console.log("🎉 Un webhook vient d'être reçu !");
+  // On ajoute un log avec la date pour mieux suivre ce qui se passe
+  console.log(`[${new Date().toISOString()}] - Requête reçue sur /api/webhook`);
 
-  // On récupère les données envoyées par WooCommerce
-  const data = await request.json();
+  try {
+    // On essaie de lire le corps de la requête en tant que texte brut
+    const bodyText = await request.text();
 
-  // On affiche ces données pour pouvoir les inspecter
-  console.log("Voici les données reçues :");
-  console.log(JSON.stringify(data, null, 2));
+    if (bodyText) {
+      // S'il y a du texte, on essaie de le convertir depuis le format JSON
+      const data = JSON.parse(bodyText);
+      console.log("🎉 Webhook avec des données reçu !");
+      console.log(JSON.stringify(data, null, 2));
+    } else {
+      // Si le corps est vide, c'est probablement le test de connexion de WooCommerce
+      console.log("✅ Ping de connexion de WooCommerce reçu. La connexion est bonne !");
+    }
 
-  // Très important : on renvoie une réponse avec un statut 200 OK.
-  // Cela indique à WooCommerce que nous avons bien reçu la notification.
-  return new Response('Webhook reçu avec succès !', { status: 200 });
+    // On renvoie une réponse de succès au format JSON (c'est une bonne pratique)
+    return json({ message: 'Webhook traité avec succès' }, { status: 200 });
+
+  } catch (error) {
+    // Si une erreur se produit (par ex: le texte n'est pas du JSON valide)
+    console.error("❌ Erreur lors du traitement du webhook:", error);
+    
+    // On renvoie une réponse d'erreur claire
+    return json({ message: 'Erreur lors du traitement de la requête' }, { status: 400 });
+  }
 };
