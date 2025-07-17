@@ -2,31 +2,22 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
 
 export const POST: RequestHandler = async ({ request }) => {
-  // On ajoute un log avec la date pour mieux suivre ce qui se passe
-  console.log(`[${new Date().toISOString()}] - Requête reçue sur /api/webhook`);
-
+  console.log('--- NOUVELLE REQUÊTE WEBHOOK ---');
+  
   try {
-    // On essaie de lire le corps de la requête en tant que texte brut
+    // On logue les en-têtes pour voir ce que WooCommerce envoie
+    console.log('En-têtes reçus:', JSON.stringify(Object.fromEntries(request.headers), null, 2));
+
+    // On lit le corps de la requête en tant que texte brut, quoi qu'il arrive
     const bodyText = await request.text();
+    console.log('Corps de la requête (brut):', bodyText);
 
-    if (bodyText) {
-      // S'il y a du texte, on essaie de le convertir depuis le format JSON
-      const data = JSON.parse(bodyText);
-      console.log("🎉 Webhook avec des données reçu !");
-      console.log(JSON.stringify(data, null, 2));
-    } else {
-      // Si le corps est vide, c'est probablement le test de connexion de WooCommerce
-      console.log("✅ Ping de connexion de WooCommerce reçu. La connexion est bonne !");
-    }
-
-    // On renvoie une réponse de succès au format JSON (c'est une bonne pratique)
-    return json({ message: 'Webhook traité avec succès' }, { status: 200 });
+    // On renvoie toujours un succès pour ne pas avoir d'erreur côté WooCommerce
+    return json({ status: 'ok' });
 
   } catch (error) {
-    // Si une erreur se produit (par ex: le texte n'est pas du JSON valide)
-    console.error("❌ Erreur lors du traitement du webhook:", error);
-    
-    // On renvoie une réponse d'erreur claire
-    return json({ message: 'Erreur lors du traitement de la requête' }, { status: 400 });
+    console.error('Une erreur inattendue est survenue:', error);
+    // Même en cas d'erreur, on essaie de renvoyer un succès
+    return json({ status: 'error_in_handler' });
   }
 };
