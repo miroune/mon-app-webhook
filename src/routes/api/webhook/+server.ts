@@ -2,15 +2,10 @@
 import { json, error, type RequestHandler } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import crypto from 'crypto';
-import { supabase } from '$lib/server/supabase'; // <-- On importe notre client Supabase
-
-type LineItem = {
-  name: string;
-  quantity: number;
-};
+import { supabase } from '$lib/server/supabase';
 
 export const POST: RequestHandler = async ({ request }) => {
-  // ... (toute la partie de vérification de la signature reste la même)
+  // ... (la partie de vérification de la signature ne change pas)
   const webhookSecret = env.WOOCOMMERCE_WEBHOOK_SECRET;
   if (!webhookSecret) { throw error(500, 'Configuration serveur incorrecte'); }
   const bodyText = await request.text();
@@ -21,11 +16,11 @@ export const POST: RequestHandler = async ({ request }) => {
   const computedSignature = Buffer.from(signature, 'base64');
   if (!crypto.timingSafeEqual(digest, computedSignature)) { throw error(401, 'Signature du webhook invalide'); }
 
-  // Si la signature est valide, on continue...
   const orderData = JSON.parse(bodyText);
   console.log(`🎉 Commande #${orderData.number} reçue et vérifiée ! Tentative d'enregistrement...`);
 
-  // --- NOUVELLE PARTIE : ENREGISTREMENT DANS SUPABASE ---
+  // --- PARTIE MISE À JOUR ---
+  // On extrait les nouvelles informations du payload WooCommerce
   const { error: dbError } = await supabase.from('commandes').insert({
     order_id: orderData.id,
     customer_name: `${orderData.billing.first_name} ${orderData.billing.last_name}`,
@@ -33,7 +28,14 @@ export const POST: RequestHandler = async ({ request }) => {
     total_amount: orderData.total,
     currency: orderData.currency,
     status: orderData.status,
-    items_summary: orderData.line_items.map((item: LineItem) => `${item.name} (x${item.quantity})`).join(', ')
+    
+    // NOUVEAUX CHAMPS
+    shipping_address: orderData.shipping.address_1,
+    shipping_city: orderData.shipping.city,
+    billing_phone: orderData.billing.phone,
+    
+    // On stocke l'array complet des produits dans la colonne JSONB
+    line_items: orderData.line_items 
   });
 
   if (dbError) {
@@ -42,7 +44,6 @@ export const POST: RequestHandler = async ({ request }) => {
   }
 
   console.log(`✅ Commande #${orderData.number} enregistrée avec succès dans Supabase !`);
-  // ----------------------------------------------------
-
+  
   return json({ message: 'Webhook traité et commande enregistrée' });
 };
