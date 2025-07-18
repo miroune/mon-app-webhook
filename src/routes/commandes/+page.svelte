@@ -1,5 +1,6 @@
 <script lang="ts">
   import { navigating } from '$app/stores';
+  import { enhance } from '$app/forms'; // <-- AJOUTEZ CETTE LIGNE
   export let data;
 </script>
 
@@ -13,7 +14,7 @@
     </h1>
     
     <!-- Voici le nouveau formulaire pour la déconnexion -->
-    <form action="?/logout" method="POST">
+    <form action="?/logout" method="POST" use:enhance>
       <button 
         type="submit" 
         class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
@@ -39,7 +40,7 @@
             <div>
               <p class="text-sm text-gray-500 text-right">Statut</p>
               <!-- Formulaire de mise à jour du statut -->
-              <form method="POST" action="?/updateStatus" class="relative">
+              <form method="POST" action="?/updateStatus" class="relative" use:enhance>
                 <!-- On envoie l'ID de la commande en secret -->
                 <input type="hidden" name="order_id" value={commande.order_id} />
                 
