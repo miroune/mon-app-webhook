@@ -42,6 +42,42 @@
 
   </div>
 
+
+  <!-- NOUVEAU : Section de recherche et de filtres -->
+  <div class="mb-8 p-4 bg-white rounded-lg shadow">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      
+      <!-- Barre de recherche -->
+      <div class="md:col-span-2">
+        <form method="GET" class="relative">
+          <input 
+            type="search" 
+            name="q"
+            placeholder="Rechercher par nom, email..."
+            class="w-full pl-10 pr-4 py-2 border rounded-lg"
+            value={data.q || ''}
+          />
+          <!-- On garde le filtre de statut actif lors d'une recherche -->
+          {#if data.status}
+            <input type="hidden" name="status" value={data.status} />
+          {/if}
+          <div class="absolute top-0 left-0 pl-3 pt-2">
+            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          </div>
+        </form>
+      </div>
+
+      <!-- Filtres par statut -->
+      <div class="flex items-center justify-center space-x-2">
+        <a href={`?q=${data.q || ''}&status=all`} class:font-bold={!data.status || data.status === 'all'} class="px-3 py-1 rounded-full text-sm hover:bg-gray-200">Toutes</a>
+        <a href={`?q=${data.q || ''}&status=processing`} class:font-bold={data.status === 'processing'} class="px-3 py-1 rounded-full text-sm hover:bg-gray-200">En cours</a>
+        <a href={`?q=${data.q || ''}&status=completed`} class:font-bold={data.status === 'completed'} class="px-3 py-1 rounded-full text-sm hover:bg-gray-200">Terminée</a>
+      </div>
+
+    </div>
+  </div>
+
+
   {#if data.commandes && data.commandes.length > 0}
     <div class="space-y-6">
       <!-- On fait une boucle sur chaque commande pour créer une "carte" -->

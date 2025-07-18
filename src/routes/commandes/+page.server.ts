@@ -5,20 +5,49 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import { supabase } from '$lib/server/supabase';
 import type { PageServerLoad, Actions } from './$types';
 
-// La fonction `load` ne change pas
-export const load: PageServerLoad = async () => {
-  console.log("Chargement des commandes depuis Supabase...");
-  const { data: commandes, error: dbError } = await supabase
+export const load: PageServerLoad = async ({ url }) => { // On récupère "url" depuis le contexte
+  // On lit les paramètres de recherche depuis l'URL
+  const q = url.searchParams.get('q')?.trim() || '';
+  const status = url.searchParams.get('status')?.trim() || '';
+
+  console.log(`Chargement des commandes avec recherche='${q}' et statut='${status}'`);
+
+  // On commence à construire notre requête Supabase
+  let query = supabase
     .from('commandes')
-    .select('*')
-    .order('created_at', { ascending: false });
+    .select('*');
+
+  // Si un terme de recherche 'q' est présent, on filtre
+  if (q) {
+    // On cherche dans le nom du client (insensible à la casse) OU dans l'email
+    // La syntaxe .or() permet de chercher dans plusieurs colonnes.
+    // 'ilike' est pour une recherche insensible à la casse, '%' est un joker.
+    query = query.or(`customer_name.ilike.%${q}%,customer_email.ilike.%${q}%`);
+  }
+
+  // Si un filtre de statut est présent (et n'est pas "all"), on filtre
+  if (status && status !== 'all') {
+    query = query.eq('status', status);
+  }
+
+  // On ajoute toujours le tri pour avoir les plus récentes en premier
+  query = query.order('created_at', { ascending: false });
+
+  // On exécute la requête finalement construite
+  const { data: commandes, error: dbError } = await query;
 
   if (dbError) {
     console.error("Erreur lors de la récupération des commandes:", dbError.message);
     throw error(500, 'Impossible de charger les données des commandes.');
   }
   
-  return { commandes: commandes };
+  // TRÈS IMPORTANT : On renvoie les paramètres de recherche à la page
+  // pour que l'interface sache quel est l'état actuel.
+  return { 
+    commandes: commandes,
+    q: q,
+    status: status 
+  };
 };
 
 // L'objet Actions contient TOUTES les actions pour cette page
