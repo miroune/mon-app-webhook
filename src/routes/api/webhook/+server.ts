@@ -19,13 +19,12 @@ export const POST: RequestHandler = async ({ request }) => {
   const orderData = JSON.parse(bodyText);
   console.log(`🎉 Commande #${orderData.number} reçue et vérifiée ! Tentative d'enregistrement...`);
 
-  // --- PARTIE MISE À JOUR ---
-  // On transforme les données des produits pour ne garder que ce qui nous est utile.
+  // --- C'EST CETTE PARTIE QUI EST IMPORTANTE ---
   const cleanedLineItems = orderData.line_items.map((item: any) => ({
     name: item.name,
     quantity: item.quantity,
-    meta_data: item.meta_data, // Pour les variations
-    image_url: item.image?.src ?? null // On extrait l'URL de l'image ici !
+    meta_data: item.meta_data,
+    image_url: item.image?.src ?? null 
   }));
 
   const { error: dbError } = await supabase.from('commandes').insert({
@@ -38,8 +37,6 @@ export const POST: RequestHandler = async ({ request }) => {
     shipping_address: orderData.shipping.address_1,
     shipping_city: orderData.shipping.city,
     billing_phone: orderData.billing.phone,
-    
-    // On insère notre version nettoyée des produits, qui contient l'URL de l'image.
     line_items: cleanedLineItems 
   });
 
