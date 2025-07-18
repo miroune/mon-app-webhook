@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { navigating } from '$app/stores';
   export let data;
 </script>
 
@@ -20,9 +21,31 @@
             </div>
             <div>
               <p class="text-sm text-gray-500 text-right">Statut</p>
-              <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                {commande.status}
-              </span>
+              <!-- Formulaire de mise à jour du statut -->
+              <form method="POST" class="relative">
+                <!-- On envoie l'ID de la commande en secret -->
+                <input type="hidden" name="order_id" value={commande.order_id} />
+                
+                <select 
+                  name="new_status"
+                  class="appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-2 px-4 pr-8 rounded-full leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                  disabled={!!$navigating}
+                  on:change={(e) => e.currentTarget.form?.requestSubmit()}
+                >
+                  <option value="pending" selected={commande.status === 'pending'}>En attente</option>
+                  <option value="processing" selected={commande.status === 'processing'}>En cours</option>
+                  <option value="on-hold" selected={commande.status === 'on-hold'}>En pause</option>
+                  <option value="completed" selected={commande.status === 'completed'}>Terminée</option>
+                  <option value="cancelled" selected={commande.status === 'cancelled'}>Annulée</option>
+                  <option value="refunded" selected={commande.status === 'refunded'}>Remboursée</option>
+                  <option value="failed" selected={commande.status === 'failed'}>Échouée</option>
+                </select>
+                
+                <!-- Petite flèche pour le style du select -->
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                </div>
+              </form>
             </div>
           </div>
 
