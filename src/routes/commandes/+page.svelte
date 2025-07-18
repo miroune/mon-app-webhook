@@ -18,6 +18,27 @@
       openedOrderId = orderId;
     }
   }
+
+  // ... après la fonction toggleDetails(orderId) ...
+
+  // NOUVEAU : Cette fonction retourne les classes de couleur pour un statut donné
+  function getStatusColors(status: string): string {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-50 hover:bg-green-100'; // Vert pour les commandes terminées
+      case 'processing':
+        return 'bg-blue-50 hover:bg-blue-100'; // Bleu pour celles en cours
+      case 'cancelled':
+      case 'failed':
+      case 'refunded':
+        return 'bg-red-50 hover:bg-red-100'; // Rouge pour les problèmes
+      case 'on-hold':
+        return 'bg-yellow-50 hover:bg-yellow-100'; // Jaune pour celles en pause
+      case 'pending':
+      default:
+        return 'bg-gray-50 hover:bg-gray-100'; // Gris par défaut
+    }
+  }
 </script>
 
 <main class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
@@ -88,7 +109,7 @@
           <!-- NOUVEAU : L'en-tête est maintenant un bouton qui déclenche notre fonction -->
           <button 
             on:click={() => toggleDetails(commande.order_id)}
-            class="w-full bg-gray-50 p-4 border-b border-gray-200 flex justify-between items-center text-left hover:bg-gray-100 focus:outline-none"
+            class="w-full p-4 border-b border-gray-200 flex justify-between items-center text-left focus:outline-none {getStatusColors(commande.status)}"
           >
             <!-- Info Commande -->
             <div>
