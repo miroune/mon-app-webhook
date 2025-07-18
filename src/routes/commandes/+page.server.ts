@@ -26,7 +26,7 @@ export const actions: Actions = {
   
   // --- Action N°1 : Mettre à jour le statut ---
   // C'est l'action "default" car le formulaire n'a pas de "?/action"
-  default: async ({ request }) => {
+  updateStatus: async ({ request }) => {
     const formData = await request.formData();
     const orderId = formData.get('order_id');
     const newStatus = formData.get('new_status');

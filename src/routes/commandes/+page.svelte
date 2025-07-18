@@ -39,7 +39,7 @@
             <div>
               <p class="text-sm text-gray-500 text-right">Statut</p>
               <!-- Formulaire de mise à jour du statut -->
-              <form method="POST" class="relative">
+              <form method="POST" action="?/updateStatus" class="relative">
                 <!-- On envoie l'ID de la commande en secret -->
                 <input type="hidden" name="order_id" value={commande.order_id} />
                 
