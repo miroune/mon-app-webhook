@@ -1,6 +1,6 @@
 // src/routes/commandes/+page.server.ts
 import { supabase } from '$lib/server/supabase';
-import { error, fail } from '@sveltejs/kit';
+import { error, fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 
 // La fonction `load` ne change pas. Elle charge toujours les données.
@@ -52,5 +52,13 @@ export const actions: Actions = {
     // Pas besoin de retourner de valeur ici. SvelteKit va automatiquement
     // recharger les données via la fonction `load` et mettre à jour la page.
     return { success: true };
+  },
+
+  // NOUVELLE ACTION "LOGOUT"
+  logout: async ({ cookies }) => {
+    // On supprime le cookie
+    cookies.delete('session', { path: '/' });
+    // Et on redirige vers la page de connexion
+    throw redirect(303, '/login');
   }
 };

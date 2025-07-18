@@ -4,9 +4,26 @@
 </script>
 
 <main class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
-  <h1 class="text-3xl font-bold text-gray-900 mb-8">
-    Tableau de Bord des Commandes
-  </h1>
+  <!-- Ce div utilise Flexbox pour aligner ses enfants -->
+  <div class="flex justify-between items-center mb-8">
+    
+    <!-- Le titre reste le même, mais sans la marge du bas (mb-8) car le div parent s'en occupe -->
+    <h1 class="text-3xl font-bold text-gray-900">
+      Tableau de Bord des Commandes
+    </h1>
+    
+    <!-- Voici le nouveau formulaire pour la déconnexion -->
+    <form action="?/logout" method="POST">
+      <button 
+        type="submit" 
+        class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+        disabled={!!$navigating}
+      >
+        Déconnexion
+      </button>
+    </form>
+
+  </div>
 
   {#if data.commandes && data.commandes.length > 0}
     <div class="space-y-6">
