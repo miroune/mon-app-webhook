@@ -37,18 +37,31 @@
             </div>
 
             <!-- Section Détail Produits -->
-            <div class="space-y-3">
+            <!-- Remplacez l'ancienne section "Détail Produits" par celle-ci -->
+            <div class="space-y-4">
               <h3 class="font-semibold text-gray-800 border-b pb-2">Produits Commandés</h3>
               {#if commande.line_items}
                 {#each commande.line_items as item}
-                  <div class="text-sm border-l-4 border-indigo-200 pl-3">
-                    <p class="font-medium text-gray-900">{item.name} <span class="font-normal text-gray-600">x {item.quantity}</span></p>
-                    <!-- Boucle pour afficher les variations (taille, couleur, etc.) -->
-                    {#if item.meta_data && item.meta_data.length > 0}
-                      {#each item.meta_data as meta}
-                        <p class="text-xs text-gray-500">{meta.display_key}: {meta.display_value}</p>
-                      {/each}
+                  <!-- On utilise flex pour aligner l'image et le texte -->
+                  <div class="flex items-center">
+                    <!-- Affiche l'image si l'URL existe -->
+                    {#if item.image_url}
+                      <img 
+                        src={item.image_url} 
+                        alt={item.name} 
+                        class="w-16 h-16 object-cover rounded-md mr-4 border"
+                      />
                     {/if}
+                    
+                    <div class="text-sm">
+                      <p class="font-medium text-gray-900">{item.name} <span class="font-normal text-gray-600">x {item.quantity}</span></p>
+                      <!-- Boucle pour afficher les variations (taille, couleur, etc.) -->
+                      {#if item.meta_data && item.meta_data.length > 0}
+                        {#each item.meta_data as meta}
+                          <p class="text-xs text-gray-500">{meta.display_key}: {meta.display_value}</p>
+                        {/each}
+                      {/if}
+                    </div>
                   </div>
                 {/each}
               {/if}
