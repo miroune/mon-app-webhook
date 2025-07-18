@@ -1,12 +1,19 @@
 <script lang="ts">
   import { navigating } from '$app/stores';
-  import { enhance } from '$app/forms';
-  import { slide } from 'svelte/transition'; // <-- NOUVEAU : Pour l'animation
+  import { enhance } from '$app/forms'; // "enhance" vient bien d'ici
+  import type { SubmitFunction, ActionResult } from '@sveltejs/kit'; // <-- LES DEUX TYPES VIENNENT D'ICI
+  import { slide, fade } from 'svelte/transition';
+  // ...
   export let data;
 
   // NOUVEAU : Cette variable gardera en mémoire l'ID de la commande ouverte.
   // `null` signifie qu'aucune n'est ouverte.
   let openedOrderId: number | null = null;
+  let notificationTimer: any; // Pour gérer le setTimeout
+
+  // NOUVEAU : Les variables d'état pour notre notification
+  let showNotification = false;
+  let notificationMessage = '';
 
   // NOUVEAU : Cette fonction gère l'ouverture/fermeture des détails.
   function toggleDetails(orderId: number) {
@@ -39,6 +46,32 @@
         return 'bg-gray-50 hover:bg-gray-100'; // Gris par défaut
     }
   }
+
+  // Remplacez l'ancienne fonction par celle-ci
+
+  // NOUVEAU : On type notre fonction avec le type importé "SubmitFunction"
+  const showUpdateNotification: SubmitFunction = ({ action }) => {
+    // La fonction "enhance" s'exécute en deux temps.
+    // 1. Cette partie s'exécute juste avant l'envoi du formulaire. On récupère "action".
+
+    // 2. On retourne une autre fonction qui s'exécutera APRÈS la réponse du serveur.
+    return async ({ result }: { result: ActionResult }) => {
+      // On type explicitement le paramètre "result" ici.
+
+      // La logique de vérification reste la même, mais elle est maintenant au bon endroit.
+      if (action.pathname.endsWith('?/updateStatus') && result.type === 'success') {
+        
+        notificationMessage = 'Statut mis à jour avec succès !';
+        showNotification = true;
+
+        clearTimeout(notificationTimer);
+
+        notificationTimer = setTimeout(() => {
+          showNotification = false;
+        }, 3000);
+      }
+    };
+  };
 </script>
 
 <main class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
@@ -180,7 +213,7 @@
                 <div>
                   <p class="text-sm text-gray-500">Statut</p>
                   <!-- Le formulaire de mise à jour est maintenant ici, dans les détails -->
-                  <form method="POST" action="?/updateStatus" class="relative" use:enhance>
+                  <form method="POST" action="?/updateStatus" class="relative" use:enhance={showUpdateNotification}>
                     <input type="hidden" name="order_id" value={commande.order_id} />
                     <select name="new_status" class="appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-2 px-4 pr-8 rounded-full leading-tight focus:outline-none focus:bg-white focus:border-gray-500" disabled={!!$navigating} on:change={(e) => e.currentTarget.form?.requestSubmit()}>
                       <option value="pending" selected={commande.status === 'pending'}>En attente</option>
@@ -209,6 +242,16 @@
   {:else}
     <div class="text-center py-12 bg-white shadow-md rounded-lg">
       <p class="text-gray-500">Aucune commande à afficher.</p>
+    </div>
+  {/if}
+
+  <!-- NOUVEAU : Le composant "Toast" de notification -->
+  {#if showNotification}
+    <div
+      transition:fade={{ duration: 300 }}
+      class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-lg text-sm"
+    >
+      {notificationMessage}
     </div>
   {/if}
 </main>
