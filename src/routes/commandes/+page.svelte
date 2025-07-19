@@ -47,31 +47,22 @@
     }
   }
 
-  // Remplacez l'ancienne fonction par celle-ci
-
-  // NOUVEAU : On type notre fonction avec le type importé "SubmitFunction"
   const showUpdateNotification: SubmitFunction = ({ action }) => {
-    // La fonction "enhance" s'exécute en deux temps.
-    // 1. Cette partie s'exécute juste avant l'envoi du formulaire. On récupère "action".
+  return async ({ result }: { result: ActionResult }) => {
+    // LA CORRECTION EST SUR LA LIGNE SUIVANTE : on utilise action.href
+    if (action.href.endsWith('?/updateStatus') && result.type === 'success') {
+      
+      notificationMessage = 'Statut mis à jour avec succès !';
+      showNotification = true;
 
-    // 2. On retourne une autre fonction qui s'exécutera APRÈS la réponse du serveur.
-    return async ({ result }: { result: ActionResult }) => {
-      // On type explicitement le paramètre "result" ici.
+      clearTimeout(notificationTimer);
 
-      // La logique de vérification reste la même, mais elle est maintenant au bon endroit.
-      if (action.pathname.endsWith('?/updateStatus') && result.type === 'success') {
-        
-        notificationMessage = 'Statut mis à jour avec succès !';
-        showNotification = true;
-
-        clearTimeout(notificationTimer);
-
-        notificationTimer = setTimeout(() => {
-          showNotification = false;
-        }, 3000);
-      }
-    };
+      notificationTimer = setTimeout(() => {
+        showNotification = false;
+      }, 3000);
+    }
   };
+};
 </script>
 
 <main class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
