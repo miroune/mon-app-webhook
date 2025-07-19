@@ -1,6 +1,6 @@
-// src/routes/commandes/+page.server.ts
-
-// Assurez-vous que tous les imports nécessaires sont là
+import { createClient } from '@supabase/supabase-js';
+import { PUBLIC_SUPABASE_URL } from '$env/static/public';
+import { SUPABASE_SERVICE_KEY } from '$env/static/private';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { supabase } from '$lib/server/supabase';
 import type { PageServerLoad, Actions } from './$types';
@@ -85,5 +85,30 @@ export const actions: Actions = {
   logout: async ({ cookies }) => {
     cookies.delete('session', { path: '/' });
     throw redirect(303, '/login');
+  },
+
+  // NOUVELLE ACTION POUR LES COMMENTAIRES
+  updateComment: async ({ request }) => {
+    const supabase = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    const formData = await request.formData();
+
+    const orderId = formData.get('order_id');
+    const comment = formData.get('comment');
+
+    if (!orderId || typeof comment !== 'string') {
+      return fail(400, { message: 'Données manquantes ou invalides.' });
+    }
+
+    const { error: dbError } = await supabase
+      .from('commandes')
+      .update({ commentaires: comment }) // On met à jour la colonne "commentaires"
+      .eq('order_id', orderId);
+
+    if (dbError) {
+      console.error("Erreur lors de la mise à jour du commentaire:", dbError.message);
+      return fail(500, { message: 'Erreur serveur lors de la sauvegarde.' });
+    }
+
+    return { success: true, message: 'Commentaire mis à jour !' };
   }
 };

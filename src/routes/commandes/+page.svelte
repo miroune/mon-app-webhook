@@ -48,21 +48,25 @@
   }
 
   const showUpdateNotification: SubmitFunction = ({ action }) => {
-  return async ({ result }: { result: ActionResult }) => {
-    // LA CORRECTION EST SUR LA LIGNE SUIVANTE : on utilise action.href
-    if (action.href.endsWith('?/updateStatus') && result.type === 'success') {
-      
-      notificationMessage = 'Statut mis à jour avec succès !';
-      showNotification = true;
-
-      clearTimeout(notificationTimer);
-
-      notificationTimer = setTimeout(() => {
-        showNotification = false;
-      }, 3000);
-    }
+    return async ({ result }: { result: ActionResult }) => {
+      if (result.type === 'success') {
+        // On choisit le message en fonction de l'action qui a réussi
+        if (action.href.endsWith('?/updateStatus')) {
+          notificationMessage = 'Statut mis à jour avec succès !';
+        } else if (action.href.endsWith('?/updateComment')) {
+          notificationMessage = 'Note enregistrée avec succès !';
+        } else {
+          return; // Ne rien faire pour les autres actions (ex: logout)
+        }
+        
+        showNotification = true;
+        clearTimeout(notificationTimer);
+        notificationTimer = setTimeout(() => {
+          showNotification = false;
+        }, 3000);
+      }
+    };
   };
-};
 </script>
 
 <main class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
@@ -197,6 +201,30 @@
                     {/each}
                   {/if}
                 </div>
+
+                <!-- NOUVEAU : Section des commentaires -->
+                <div class="md:col-span-2 pt-6 border-t mt-6">
+                  <h3 class="font-semibold text-gray-800 mb-2">Notes & Commentaires</h3>
+                  <form method="POST" action="?/updateComment" use:enhance={showUpdateNotification}>
+                    <input type="hidden" name="order_id" value={commande.order_id} />
+                    <textarea
+                      name="comment"
+                      rows="4"
+                      class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Ajouter une note pour cette commande..."
+                    >{commande.commentaires || ''}</textarea>
+                    <div class="text-right mt-2">
+                      <button
+                        type="submit"
+                        class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        disabled={!!$navigating}
+                      >
+                        Enregistrer la note
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
               </div>
 
               <!-- Pied de la carte avec le statut et la date -->
@@ -240,7 +268,7 @@
   {#if showNotification}
     <div
       transition:fade={{ duration: 300 }}
-      class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-lg text-sm"
+      class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-blue-900 text-white px-6 py-3 rounded-full shadow-lg text-sm"
     >
       {notificationMessage}
     </div>

@@ -19,7 +19,6 @@ export const POST: RequestHandler = async ({ request }) => {
   const orderData = JSON.parse(bodyText);
   console.log(`🎉 Commande #${orderData.number} reçue et vérifiée ! Tentative d'enregistrement...`);
 
-  // --- C'EST CETTE PARTIE QUI EST IMPORTANTE ---
   const cleanedLineItems = orderData.line_items.map((item: any) => ({
     name: item.name,
     quantity: item.quantity,
@@ -27,6 +26,7 @@ export const POST: RequestHandler = async ({ request }) => {
     image_url: item.image?.src ?? null 
   }));
 
+  // --- C'EST ICI QUE VOUS FAITES LA MODIFICATION ---
   const { error: dbError } = await supabase.from('commandes').insert({
     order_id: orderData.id,
     customer_name: `${orderData.billing.first_name} ${orderData.billing.last_name}`,
@@ -37,7 +37,8 @@ export const POST: RequestHandler = async ({ request }) => {
     shipping_address: orderData.shipping.address_1,
     shipping_city: orderData.shipping.city,
     billing_phone: orderData.billing.phone,
-    line_items: cleanedLineItems 
+    line_items: cleanedLineItems,
+    commentaires: null // <-- AJOUTEZ CETTE LIGNE ICI
   });
 
   if (dbError) {
